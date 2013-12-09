@@ -19,7 +19,7 @@ void log10()
 {
 	node first = pop();
 	if (first->kind == NUMERAL) {
-		first->contents.numVal == log10(first->content.numVal);
+		first->contents.numVal = log10(first->content.numVal);
 	}
 	else assert(false);
 
@@ -335,7 +335,6 @@ void primrec(){
 	freeNode(U);
 	freeNode(V);
 	freeNode(W);
-	freeNode(Y);
 }
 
 /*
