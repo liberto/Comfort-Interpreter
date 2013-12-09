@@ -1,0 +1,11 @@
+(* Compute the greatest common divisor of two numbers
+   using Euclid’s algorithm.
+*)
+
+@ gcd == [dup rotate dup swapd !=]
+         [[dup rotate dup swapd <] [swap] [] ifte
+             dup rotate swap -]
+         while .
+
+1216 1152 gcd .
+
