@@ -23,6 +23,25 @@ node pop()
   return out;
 }
 
+node copyNode(node n)
+{
+  node new = (node) malloc (sizeof (struct genericNode));
+  
+  new->kind = n->kind;
+  new->next = n->next;
+
+  if (n->kind == QUOTATION)
+    new->contents.quotation = n->contents.quotation;
+  else if (n->kind == NUMERAL)
+    new->contents.numVal = n->contents.numVal;
+  else if (n->kind == BOOLEAN)
+    new->contents.boolVal = n->contents.boolVal;
+  else
+    assert(false);
+
+  return new;
+}
+
 /* Creates a copy of the input stack and returns a pointer to it. Starts at the
  * top of the stack and recurses down.
  */

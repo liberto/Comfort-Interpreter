@@ -166,6 +166,7 @@ typedef struct quotationList
 
 void push(node in);
 node pop();
+node copyNode(node n);
 node copyStackHelper(node curNode);
 stack copyStack(stack origStack);
 void freeList(node in);
