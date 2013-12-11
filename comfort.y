@@ -48,7 +48,7 @@ void quotexec_helper(node quote)
       instruction_exec(quote->contents.reservedID);
       break;
     case IDENTIFIER:
-      /* look up identifier in hash table, do appropriate command */
+      quotation_exec(quote);
       break;
     case BOOLEAN:
     case NUMERAL:
@@ -81,12 +81,6 @@ void instruction_exec(opcode command)
   functions[command]();
 }
 
-/* The global stack that stores the inputs and outputs of functions. */
-stack globalStack;
-
-/* The global hash table used for all hash purposes. */
-def_ht global_def_ht;
-
 
 
 %}
@@ -97,31 +91,71 @@ def_ht global_def_ht;
 %%
 
 program: definition_section expression_list FULLSTOP
-	{
-		
-	}
-
 definition_section: AT_SIGN definition_sequence
 		  | /* epsilon */
-definition_sequence: definition more_definitions
+definition_sequence: definition more_definitions 
 more_definitions: SEMICOLON definition more_definitions
 		| /* epsilon */
-definition: identifier EQUALS expression_list
+definition: DEFINITION EQUALS quotation_list
           {
-            /* Put the identifier in the hashtable */
+            def_ht_put(yylval.value.name, $3);
           }
 expression_list: expression expression_list
-		   | /* epsilon */
-expression: NUMERAL
+               {
+                 quotexec_helper($1);
+               }
+               | /* epsilon */
+expression: NUMERAL /* numeral, boolean, quotation, or instruction */
           {
-            
+            /* Make a node containing the numeral */
+            $$ = malloc(sizeof(struct genericNode));
+            $$.kind = NUMERAL;
+            $$->contents.numVal = yylval.value.numVal;
+            $$->next = NULL;
           }
-	  | identifier
+          | TRUE
           {
-            /* call function associated with identifier */
+            /* Make a node containing the numeral */
+            $$ = malloc(sizeof(struct genericNode));
+            $$.kind = BOOLEAN;
+            $$->contents.boolVal = true; 
+            $$->next = NULL;
           }
-	  | BEGINQUOTE expression_list ENDQUOTE
-
+          | FALSE
+          {
+            /* Make a node containing the numeral */
+            $$ = malloc(sizeof(struct genericNode));
+            $$.kind = BOOLEAN;
+            $$->contents.boolVal = false;
+            $$->next = NULL;
+          }
+	  | BASIC_OP
+          {
+            /* Make a node containing the numeral */
+            $$ = malloc(sizeof(struct genericNode));
+            $$.kind = BASIC_OP;
+            $$->contents.reservedID = yylval.value.opVal;
+            $$->next = NULL;
+          }
+          | DEFINITION
+          {
+            $$ = copyStackHelper(def_ht_get(yylval.value.name));
+            if (!$$) //if no match
+              yyerror("Undefined identifier %s\n", yylval.value.name);
+          }
+	  | BEGINQUOTE quotation_list ENDQUOTE
+          {
+            $$ = malloc(sizeof(struct genericNode));
+            $$.kind = QUOTATION;
+            $$->contents.quotation = $2;
+            $$->next = NULL;
+          }
+quotation_list: expression quotation_list
+              {
+                $$ = $1;
+                $1->next = $2;
+              }
+              | /* epsilon */ 
 
 %%
 

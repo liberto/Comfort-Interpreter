@@ -149,7 +149,7 @@ typedef struct genericNode
     double numVal;
     struct genericNode *quotation;
     opcode reservedID;
-    int definedID;
+    struct genericNode *definedID;
   } contents;
   struct genericNode *next;
 } *node;
@@ -163,6 +163,9 @@ typedef struct quotationList
 {
   node first;
 } *quotation;
+
+/* The global stack that stores the inputs and outputs of functions. */
+stack globalStack;
 
 /* Adds the given node to the top of the stack, pushing everything else down.
  * This takes no parameters, because we only ever use the global stack.

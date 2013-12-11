@@ -28,6 +28,9 @@ typedef struct definition_hash_table
   pair_list *table;
 } def_ht;
 
+/* The global hash table used for all hash purposes. */
+def_ht global_def_ht;
+
 /* Allocates a definition hash table with 150 spaces and returns it. */
 def_ht make_def_ht()
 {
