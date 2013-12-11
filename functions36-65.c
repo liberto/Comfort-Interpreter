@@ -1,5 +1,5 @@
 /* 
-Comfort Compiler Functions 30-59
+Comfort Compiler Functions 36-65
 Erik Opavsy, for project in CSC362
 */
 
@@ -85,8 +85,6 @@ void div()
     assert(false);
 }
 
-
-/******** NOT IMPLEMENTED ***********/
 /*
 drop: pops the two top values V and W, where W is a quotation and V is a
         non-negative integer less than or equal to the number of elements
@@ -104,35 +102,21 @@ void drop()
       W->kind == QUOTATION) {
 
     int i;
+    node n = w->contents.quotation;
+    node temp;
     for (i = 0; i < V->contents.numVal; i++) {
-
-
+      temp = n;
+      n = n->next();
+      if (temp != NULL)
+        freeNode(temp);
+      else
+        assert(false);
     }
 
-
+    w->next = n;
   }
   else
     assert(false);
-
-}
-
-Node copyNode(Node n)
-{
-  node new = (node) malloc (sizeof (struct genericNode));
-  
-  new->kind = n->kind;
-  new->next = NULL;
-
-  if (n->kind == QUOTATION)
-    new->contents.quotation = n->contents.quotation;
-  else if (n->kind == NUMERAL)
-    new->contents.numVal = n->contents.numVal;
-  else if (n->kind == BOOLEAN)
-    new->contents.boolVal = n->contents.boolVal;
-  else
-    assert(false);
-
-  return new;
 }
 
 /*
@@ -158,12 +142,11 @@ void dupd()
   push(V);
 }
 
-
-/******** NOT IMPLEMENTED ***********/
 /*
 enconcat: pops the top three values U, V, and W, where V and W must be
         quotations, from the stack and pushes a quotation formed by
         concatenating W with the result of prepending U to V onto the stack
+        result is WUV
 */
 void enconcat()
 {
@@ -172,27 +155,69 @@ void enconcat()
   node W = pop();
 
   if (V->kind == QUOTATION && W->kind == QUOTATION) {
+    node temp = w->contents.quotation;
 
+    while (temp != NULL)
+      temp = temp->next;
+    temp->next = u;
+
+    u->next = V->contents.quotation;
+
+    free(V);
+
+    push(W);
   }
   else
     assert(false);
-
 }
 
-/******** NOT IMPLEMENTED ***********/
-// do we push false if we don't push true?
 /*
 equal: pops the top two values V and W from the stack and pushes the
         Boolean value true on the stack if V and W are both Boolean values
         and are the same Boolean value, or are both numbers and are equal
         as numbers, or are both quotations, have the same length, and have
         equal elements at each position
+// do we push false if we don't push true? This implementation doesn't.
 */
 void equal()
 {
   node V = pop();
   node W = pop();
 
+  if (V->kind == NUMERAL && W->kind == NUMERAL) {
+    if (V->numVal == W->numVal)
+      true();
+  }
+  else if (V->kind == BOOLEAN && W->kind == BOOLEAN) {
+    if(V->boolVal == W->boolVal)
+      true();
+  }
+  else if (V->kind == QUOTATION && W->kind == QUOTATION) {
+    int truthVal = 1;
+    node tempV = V->contents.quotation;
+    node tempW = W->contents.quotation;
+
+    // go through all of V
+    while (tempV != NULL) {
+      if (tempV->contents.quotation != tempW->contents.quotation) {
+        truthVal = 0;
+        break;
+      }
+      tempV = tempV->next;
+      tempW = tempW->next;
+    }
+
+    // check to make sure tempW finished too
+    if (tempW != NULL)
+      truthVal = 0;
+
+    // if all our tests passed, push true onto the stack
+    if (truthVal)
+      true();
+  }
+
+  freeNode(V);
+  freeNode(W);
 }
 
 /*
@@ -212,7 +237,6 @@ void exp()
   push(V);
 }
 
-/******** what is boolVal vs. reserveID ? ***********/
 /*
 false: pushes the false Boolean value onto the stack
 */
@@ -226,7 +250,6 @@ void false()
 }
 
 /******** NOT IMPLEMENTED ***********/
-// need to talk about quotations.. where is parser code?
 /*
 filter: pops the top two values V and W, both of which must be quotations,
         from the stack; for each element X of V, push X onto the stack,
@@ -236,18 +259,30 @@ filter: pops the top two values V and W, both of which must be quotations,
 */
 void filter()
 {
-
+  node V = pop();
+  node W = pop();
+  
+  if (V->kind == QUOTATION && W->kind == QUOTATION) {
+    
+    
+  }
+  else
+    assert(false);
 }
 
-/******** NOT IMPLEMENTED ***********/
-// need to talk about quotations..
 /*
 first: pops the top value V, which must be a non-empty quotation, from the
         stack and pushes the first element of V onto the stack
 */
 void first()
 {
-
+  node V = pop();
+  if (V->kind == QUOTATION && V->contents.quotation != null) {
+    push(V->contents.quotation);
+    freeNode(V);
+  }
+  else
+    assert(false);
 }
 
 /******** NOT IMPLEMENTED ***********/
@@ -285,9 +320,28 @@ fold: pops the top three values U, V, and W, where U and W must be
 */
 void fold()
 {
+  node U = pop();
+  node V = pop();
+  node W = pop();
 
+  if (U->kind == QUOTATION && W->kind == QUOTATION) {
+    push(V);
+
+    node temp = W->contents.quotation;
+    while (temp != NULL) {
+      push(temp);
+      quotation_exec(U);
+      temp = temp->next;
+    }
+
+    freeNode(U);
+    freeNode(W);
+  }
+  else
+    assert(false);
 }
 
+/******** NOT IMPLEMENTED ***********/
 /*
 frexp: pops the top value V, which must be a number, from the stack, and
         pushes two values M and E onto the stack (with E on top and M in
@@ -298,9 +352,11 @@ frexp: pops the top value V, which must be a number, from the stack, and
 */
 void frexp()
 {
+  node V = pop();
 
 }
 
+/******** NOT IMPLEMENTED ***********/
 /*
 genrec: pops the top four values U, V, W, and X, which must all be
         quotations, from the stack; executes U; pops the top value Y of the
@@ -312,17 +368,74 @@ genrec: pops the top four values U, V, W, and X, which must all be
 */
 void genrec()
 {
+ node U = pop();
+  node V = pop();
+  node W = pop();
+  node X = pop();
 
+  if (U->kind == QUOTATION && 
+      V->kind == QUOTATION && 
+      W->kind == QUOTATION && 
+      X->kind == QUOTATION) {
+    quotation_exec(U);
+    freeNode(U);
+
+    node Y = pop();
+    if (Y->kind == BOOLEAN) {
+      if (Y->boolVal) {
+        quotation_exec(V);
+        freeNode(V);
+        freeNode(W);
+        freeNode(X);
+        freeNode(Y);
+
+      } 
+      else {
+        quotation_exec(W);
+        // then executes a five-element quotation 
+        //  consisting of U, V, W, X, genrec, X
+      }
+
+    }
+    else
+      assert(false);
+  }
+  else
+    assert(false);
 }
 
 /*
 has: pops the top two values V and W, where W must be a quotation, from the
         stack, and pushes the true Boolean value onto the stack if V is an
         element of W, the false Boolean value otherwise
+        // should this free V and W at the end? It doesn't say to push them
+           back onto the stack...
 */
 void has()
 {
+  node V = pop();
+  node W = pop();
+  node temp = W->contents.quotation;
 
+  if (W->kind == QUOTATION) {
+    int state = 0; // whether we're going to return true of false
+    while (temp != NULL) {
+      if (temp == V) {
+        state = 1;
+        break;
+      }
+    }
+  }
+  else
+    assert(false);
+
+  if (state)
+    true();
+  else
+    false();
+
+  freeNode(V);
+  freeNode(W);
 }
 
 /*
@@ -345,7 +458,7 @@ id: doesn't do anything at all (no computation, no effect on the stack)
 */
 void id()
 {
-
+  // easy!
 }
 
 /*
@@ -355,8 +468,32 @@ ifte: pops the top three values U, V, and W, which must all be quotations,
 */
 void ifte()
 {
+  node U = pop();
+  node V = pop();
+  node W = pop();
+  
+  if (U->kind == QUOTATION && 
+      V->kind == QUOTATION && 
+      W->kind == QUOTATION) {
+    quotation_exec(U);
+    freeNode(U);
 
+    node X = pop();
+    if (X->kind == BOOLEAN) {
+      if (X->boolVal)
+        quotation_exec(V);
+      else
+        quotation_exec(W);
+      freeNode(X);
+    }
+    else
+      assert(false);
+  }
+  else
+    assert(false);
 
+  freeNode(V);
+  freeNode(W);
 }
 
 /*
@@ -366,9 +503,32 @@ in: pops the top two values V and W, where V must be a quotation, from the
 */
 void in()
 {
+  node V = pop();
+  node W = pop();
+  int state = 0; // whether we're going to return true of false
+  
+  if (V->kind == QUOTATION) {
+    node temp = V->contents.quotation;
+    while (temp != NULL) {
+      if (temp == W) {
+        state = 1;
+        break;
+      }
+    }
+  }
+  else
+    assert(false);
 
+  if (state)
+    true();
+  else
+    false();
+
+  freeNode(V);
+  freeNode(W);
 }
 
+/******** NOT IMPLEMENTED ***********/
 /*
 infra: pops the top two values V and W, both of which must be quotations,
         from the stack; saves a copy of the stack; empties the stack and
@@ -380,8 +540,14 @@ infra: pops the top two values V and W, both of which must be quotations,
 */
 void infra()
 {
+  node V = pop();
+  node W = pop();
 
+  if (V->kind == QUOTATION && W->kind == QUOTATION) {
 
+  }
+  else
+    assert(false);
 }
 
 /*
@@ -433,6 +599,45 @@ linrec: pops the top four values U, V, W, and X, all of which must be
 */
 void linrec()
 {
+  node U = pop();
+  node V = pop();
+  node W = pop();
+  node X = pop();
+
+  if (U->kind == QUOTATION && 
+      V->kind == QUOTATION && 
+      W->kind == QUOTATION && 
+      X->kind == QUOTATION) {
+    quotation_exec(U);
+
+    node Y  = pop();
+    if (Y->kind == BOOLEAN) {
+      if (Y->boolVal) {
+        quotation_exec(V);
+        freeNode(U);
+        freeNode(V);
+        freeNode(W);
+        freeNode(Y);
+        push(X);
+      }
+      else {
+        quotation_exec(W);
+        push(X);
+        push(W);
+        push(V);
+        push(U);
+        linrec();
+        X = pop();
+        quotation_exec(X);
+        freeNode(X);
+      }
+    }
+    else
+      assert(false);
+
+  }
+  else
+    assert(false);
 
 }
 
