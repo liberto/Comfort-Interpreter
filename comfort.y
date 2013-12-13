@@ -9,7 +9,7 @@
 #include "functions35-64h"
 #include "functions65-94.h"
 #include "functions95-121.h"
-
+#include "lexer.c"
 
 /* This is our yylval stuff. yylval is a struct with two parts: a union for
  * possible values to carry, and a tag to say what kind of value is being
@@ -81,12 +81,11 @@ void instruction_exec(opcode command)
   functions[command]();
 }
 
-
+#define YYSTYPE lexer_return_value
 
 %}
 
 %token TRUE FALSE SEMICOLON COMMA FULLSTOP BEGINQUOTE ENDQUOTE EQUALS AT_SIGN NUMERAL DEFINITION BASIC_OP
-%YYSTYPE lexer_return_value
 
 %%
 
@@ -100,7 +99,7 @@ definition: DEFINITION EQUALS quotation_list
           {
             def_ht_put(yylval.value.name, $3);
           }
-expression_list: expression expression_list
+expression_list:  expression_list expression
                {
                  quotexec_helper($1);
                }
@@ -150,7 +149,7 @@ expression: NUMERAL /* numeral, boolean, quotation, or instruction */
             $$->contents.quotation = $2;
             $$->next = NULL;
           }
-quotation_list: expression quotation_list
+quotation_list: quotation_list expression 
               {
                 $$ = $1;
                 $1->next = $2;
