@@ -1,6 +1,6 @@
 /* 
-Comfort Compiler Functions 36-65
-Erik Opavsy, for project in CSC362
+   Comfort Compiler Functions 36-65
+   Erik Opavsy, for project in CSC362
 */
 
 #include stdbool.h
@@ -10,8 +10,8 @@ Erik Opavsy, for project in CSC362
 #include assert.h
 
 /*
-cos: pops the top value, which must be a number, from the stack and pushes
-        its cosine onto the stack
+  cos: pops the top value, which must be a number, from the stack and pushes
+  its cosine onto the stack
 */
 void cos()
 {
@@ -26,8 +26,8 @@ void cos()
 }
 
 /*
-cosh: pops the top value, which must be a number, from the stack and pushes
-        its hyperbolic cosine onto the stack
+  cosh: pops the top value, which must be a number, from the stack and pushes
+  its hyperbolic cosine onto the stack
 */
 void cosh()
 {
@@ -41,8 +41,8 @@ void cosh()
 }
 
 /*
-dip: pops the top two values, V and W, from the stack, executes W, and
-        pushes V back onto the stack
+  dip: pops the top two values, V and W, from the stack, executes W, and
+  pushes V back onto the stack
 */
 void dip()
 {
@@ -60,10 +60,10 @@ void dip()
 }
 
 /*
-div: pops the two top values V and W, both of which must be integers, from
-        the stack and pushes the quotient Q and remainder R resulting from
-        the integer division of W by V onto the stack, leaving Q in the
-        second-from-top position and R on top
+  div: pops the two top values V and W, both of which must be integers, from
+  the stack and pushes the quotient Q and remainder R resulting from
+  the integer division of W by V onto the stack, leaving Q in the
+  second-from-top position and R on top
 */
 void div()
 {
@@ -86,10 +86,10 @@ void div()
 }
 
 /*
-drop: pops the two top values V and W, where W is a quotation and V is a
-        non-negative integer less than or equal to the number of elements
-        from W, from the stack, and pushes a quotation formed by removing
-        from W its first V elements onto the stack
+  drop: pops the two top values V and W, where W is a quotation and V is a
+  non-negative integer less than or equal to the number of elements
+  from W, from the stack, and pushes a quotation formed by removing
+  from W its first V elements onto the stack
 */
 void drop()
 {
@@ -120,7 +120,7 @@ void drop()
 }
 
 /*
-dup: pushes a copy of the stack's top value onto the stack
+  dup: pushes a copy of the stack's top value onto the stack
 */
 void dup()
 {
@@ -132,8 +132,8 @@ void dup()
 }
 
 /*
-dupd: pops the top value V from the stack, pushes a copy of the new top
-        value onto the stack, and pushes V onto the stack
+  dupd: pops the top value V from the stack, pushes a copy of the new top
+  value onto the stack, and pushes V onto the stack
 */
 void dupd()
 {
@@ -143,10 +143,10 @@ void dupd()
 }
 
 /*
-enconcat: pops the top three values U, V, and W, where V and W must be
-        quotations, from the stack and pushes a quotation formed by
-        concatenating W with the result of prepending U to V onto the stack
-        result is WUV
+  enconcat: pops the top three values U, V, and W, where V and W must be
+  quotations, from the stack and pushes a quotation formed by
+  concatenating W with the result of prepending U to V onto the stack
+  result is WUV
 */
 void enconcat()
 {
@@ -172,13 +172,13 @@ void enconcat()
 }
 
 /*
-equal: pops the top two values V and W from the stack and pushes the
-        Boolean value true on the stack if V and W are both Boolean values
-        and are the same Boolean value, or are both numbers and are equal
-        as numbers, or are both quotations, have the same length, and have
-        equal elements at each position
-// do we push false if we don't push true? This implementation doesn't.
-*/
+  equal: pops the top two values V and W from the stack and pushes the
+  Boolean value true on the stack if V and W are both Boolean values
+  and are the same Boolean value, or are both numbers and are equal
+  as numbers, or are both quotations, have the same length, and have
+  equal elements at each position
+  // do we push false if we don't push true? This implementation doesn't.
+  */
 void equal()
 {
   node V = pop();
@@ -221,9 +221,9 @@ void equal()
 }
 
 /*
-exp: pops the top value V, which must be a number, from the stack and pushes
-        the result of raising e, the base of natural logarithms, to the
-        power of V onto the stack
+  exp: pops the top value V, which must be a number, from the stack and pushes
+  the result of raising e, the base of natural logarithms, to the
+  power of V onto the stack
 */
 void exp()
 {
@@ -238,7 +238,7 @@ void exp()
 }
 
 /*
-false: pushes the false Boolean value onto the stack
+  false: pushes the false Boolean value onto the stack
 */
 void false()
 {
@@ -249,30 +249,55 @@ void false()
   push(f);
 }
 
-/******** NOT IMPLEMENTED ***********/
 /*
-filter: pops the top two values V and W, both of which must be quotations,
-        from the stack; for each element X of V, push X onto the stack,
-        execute W, and pop the result Y, which must be a Boolean, from the
-        stack; collect the elements X that yielded the true Boolean value
-        as a result into a quotation and push it onto the stack
+  filter: pops the top two values V and W, both of which must be quotations,
+  from the stack; for each element X of V, push X onto the stack,
+  execute W, and pop the result Y, which must be a Boolean, from the
+  stack; collect the elements X that yielded the true Boolean value
+  as a result into a quotation and push it onto the stack
 */
 void filter()
 {
   node V = pop();
   node W = pop();
-  
+  node X = V->contents.quotation;
+  node Y;
+  int numResults = 0;
+  node lastPushed;
+
   if (V->kind == QUOTATION && W->kind == QUOTATION) {
-    
-    
+    while (X != NULL) {
+      push(X);
+      quotation_exec(W);
+      
+      Y = pop();
+
+      if (Y->kind != BOOLEAN)
+        assert(false);
+
+      if (Y->contents)
+        if (numResults > 0) {
+          lastPushed->next = X;
+          lastPushed = X;
+        }
+        else {
+          V->contents.quotation = X;
+          numResults++;
+          lastPushed = x;
+        }
+
+      X = X->next;
+
+    }
+    push(V);
   }
   else
     assert(false);
 }
 
 /*
-first: pops the top value V, which must be a non-empty quotation, from the
-        stack and pushes the first element of V onto the stack
+  first: pops the top value V, which must be a non-empty quotation, from the
+  stack and pushes the first element of V onto the stack
 */
 void first()
 {
@@ -288,18 +313,18 @@ void first()
 /******** NOT IMPLEMENTED ***********/
 // how do we indicate imaginary numbers?
 /*
-float: pops the top value V from the stack and pushes the true Boolean
-        value onto the stack if V is a real number, the false Boolean value
-        if it is not
+  float: pops the top value V from the stack and pushes the true Boolean
+  value onto the stack if V is a real number, the false Boolean value
+  if it is not
 */
-void float()
-{
-
-}
+//void float()
+//{
+//
+//}
 
 /*
-floor: pops the top value V, which must be a number, from the stack, and
-        pushes the greatest integer not greater than V onto the stack
+  floor: pops the top value V, which must be a number, from the stack, and
+  pushes the greatest integer not greater than V onto the stack
 */
 void floor()
 {
@@ -314,9 +339,9 @@ void floor()
 }
 
 /*
-fold: pops the top three values U, V, and W, where U and W must be
-        quotations; push V back onto the stack; for each element X of W in
-        push X onto the stack and execute U
+  fold: pops the top three values U, V, and W, where U and W must be
+  quotations; push V back onto the stack; for each element X of W in
+  push X onto the stack and execute U
 */
 void fold()
 {
@@ -343,32 +368,39 @@ void fold()
 
 /******** NOT IMPLEMENTED ***********/
 /*
-frexp: pops the top value V, which must be a number, from the stack, and
-        pushes two values M and E onto the stack (with E on top and M in
-        the second-to-top position); if V is zero, M and E are both zero,
-        and otherwise M has the same sign as V, the absolute value of M
-        lies in the range from 0.5 (inclusive) to 1 (exclusive), and the
-        ratio of V to M is 2^E (see the man page on C's frexp function)
+  frexp: pops the top value V, which must be a number, from the stack, and
+  pushes two values M and E onto the stack (with E on top and M in
+  the second-to-top position); if V is zero, M and E are both zero,
+  and otherwise M has the same sign as V, the absolute value of M
+  lies in the range from 0.5 (inclusive) to 1 (exclusive), and the
+  ratio of V to M is 2^E (see the man page on C's frexp function)
 */
 void frexp()
 {
   node V = pop();
 
+  if (V->kind == NUMERAL) {
+    
+
+  }
+  else
+    assert(false);
+
 }
 
 /******** NOT IMPLEMENTED ***********/
 /*
-genrec: pops the top four values U, V, W, and X, which must all be
-        quotations, from the stack; executes U; pops the top value Y of the
-        stack, which must be Boolean; if Y is true, executes V (which
-        terminates the operation, and if Y is false, executes W, then
-        executes a five-element quotation consisting of the quotation of U,
-        the quotation of V, the quotation of W, the quotation of X, and
-        genrec, then executes X 
+  genrec: pops the top four values U, V, W, and X, which must all be
+  quotations, from the stack; executes U; pops the top value Y of the
+  stack, which must be Boolean; if Y is true, executes V (which
+  terminates the operation, and if Y is false, executes W, then
+  executes a five-element quotation consisting of the quotation of U,
+  the quotation of V, the quotation of W, the quotation of X, and
+  genrec, then executes X 
 */
 void genrec()
 {
- node U = pop();
+  node U = pop();
   node V = pop();
   node W = pop();
   node X = pop();
@@ -405,11 +437,11 @@ void genrec()
 }
 
 /*
-has: pops the top two values V and W, where W must be a quotation, from the
-        stack, and pushes the true Boolean value onto the stack if V is an
-        element of W, the false Boolean value otherwise
-        // should this free V and W at the end? It doesn't say to push them
-           back onto the stack...
+  has: pops the top two values V and W, where W must be a quotation, from the
+  stack, and pushes the true Boolean value onto the stack if V is an
+  element of W, the false Boolean value otherwise
+  // should this free V and W at the end? It doesn't say to push them
+  back onto the stack...
 */
 void has()
 {
@@ -439,7 +471,7 @@ void has()
 }
 
 /*
-i: pops the top value from the stack and executes it
+  i: pops the top value from the stack and executes it
 */
 void i()
 {
@@ -454,7 +486,7 @@ void i()
 }
 
 /*
-id: doesn't do anything at all (no computation, no effect on the stack)
+  id: doesn't do anything at all (no computation, no effect on the stack)
 */
 void id()
 {
@@ -462,9 +494,9 @@ void id()
 }
 
 /*
-ifte: pops the top three values U, V, and W, which must all be quotations,
-        from the stack; executes U; pops the top value X, which must be
-        Boolean, from the stack; executes V if X is true and W if X is false
+  ifte: pops the top three values U, V, and W, which must all be quotations,
+  from the stack; executes U; pops the top value X, which must be
+  Boolean, from the stack; executes V if X is true and W if X is false
 */
 void ifte()
 {
@@ -497,9 +529,9 @@ void ifte()
 }
 
 /*
-in: pops the top two values V and W, where V must be a quotation, from the
-        stack, and pushes the true Boolean value onto the stack if W is an
-        element of V, the false Boolean value otherwise
+  in: pops the top two values V and W, where V must be a quotation, from the
+  stack, and pushes the true Boolean value onto the stack if W is an
+  element of V, the false Boolean value otherwise
 */
 void in()
 {
@@ -530,13 +562,13 @@ void in()
 
 /******** NOT IMPLEMENTED ***********/
 /*
-infra: pops the top two values V and W, both of which must be quotations,
-        from the stack; saves a copy of the stack; empties the stack and
-        replaces it with a stack containing the elements of V (the first
-        element of V at the top); execute W; convert the resulting stack
-        into a quotation X (with the top of the stack as the first
-        element); replace the stack with the saved copy; push X onto the
-        restored stack
+  infra: pops the top two values V and W, both of which must be quotations,
+  from the stack; saves a copy of the stack; empties the stack and
+  replaces it with a stack containing the elements of V (the first
+  element of V at the top); execute W; convert the resulting stack
+  into a quotation X (with the top of the stack as the first
+  element); replace the stack with the saved copy; push X onto the
+  restored stack
 */
 void infra()
 {
@@ -551,9 +583,9 @@ void infra()
 }
 
 /*
-integer: pops the top value V from the stack and pushes the true Boolean
-        value onto the stack if V is an integer, the false Boolean value if
-        it is not
+  integer: pops the top value V from the stack and pushes the true Boolean
+  value onto the stack if V is an integer, the false Boolean value if
+  it is not
 */
 void integer()
 {
@@ -572,8 +604,8 @@ void integer()
 }
 
 /*
-ldexp: pops the two top values V and W, which must be numbers, from the
-        stack and pushes the result of multiplying 2^V by W
+  ldexp: pops the two top values V and W, which must be numbers, from the
+  stack and pushes the result of multiplying 2^V by W
 */
 void ldexp()
 {
@@ -590,12 +622,12 @@ void ldexp()
 }
 
 /*
-linrec: pops the top four values U, V, W, and X, all of which must be
-        quotations, from the stack; executes U; pops the top value Y, which
-        must be Boolean, from the stack; if Y is true, executes V (which
-        completes the operation), and if Y is false, executes W, then push
-        U, V, W, and X back onto the stack (restoring their original
-        order), then executes linrec, and finally executes X
+  linrec: pops the top four values U, V, W, and X, all of which must be
+  quotations, from the stack; executes U; pops the top value Y, which
+  must be Boolean, from the stack; if Y is true, executes V (which
+  completes the operation), and if Y is false, executes W, then push
+  U, V, W, and X back onto the stack (restoring their original
+  order), then executes linrec, and finally executes X
 */
 void linrec()
 {
@@ -642,9 +674,9 @@ void linrec()
 }
 
 /*
-list: pops the top value V from the stack and pushes the true Boolean
-        value onto the stack if V is a quotation, the false Boolean value
-        if it is not
+  list: pops the top value V from the stack and pushes the true Boolean
+  value onto the stack if V is a quotation, the false Boolean value
+  if it is not
 */
 void list()
 {
@@ -659,8 +691,8 @@ void list()
 }
 
 /*
-log: pops the top value, which must be a positive number, from the stack
-        and pushes its natural logarithm onto the stack
+  log: pops the top value, which must be a positive number, from the stack
+  and pushes its natural logarithm onto the stack
 */
 void log()
 {
